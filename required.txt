@@ -1,0 +1,4 @@
+kagglehub
+ollama
+openrouter
+dotenv
