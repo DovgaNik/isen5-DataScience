@@ -2,3 +2,7 @@ kagglehub
 ollama
 openrouter
 dotenv
+pandas
+numpy
+scikit-learn
+matplotlib
