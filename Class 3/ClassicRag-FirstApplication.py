@@ -27,32 +27,41 @@ Models:
     Embedding: nomic-embed-text
     LLM:       mistral
 """
-# Dependencies you should install: 
+# Dependencies you should install:
 # python -m pip install ollama
 # ollama pull nomic-embed-text
 #If you don't have Mistral yet, also run: ollama pull mistral
 
+import os
 import math
-import ollama
-import openrouter
+import dotenv
+from openai import OpenAI
 
 
 # ============================================================
 # CONFIGURATION
 # ============================================================
+
+dotenv.load_dotenv("../.env")
+
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ.get("OPENROUTER_KEY"),
+)
+
 # Version1
-EMBEDDING_MODEL = "nomic-embed-text"
+EMBEDDING_MODEL = "baai/bge-m3"
 # Version2
-#EMBEDDING_MODEL = "all-minilm"
+#EMBEDDING_MODEL = "nomic-ai/nomic-embed-text-v1.5"
 # Version3
-#EMBEDDING_MODEL = "bge-m3"
+#EMBEDDING_MODEL = "openai/text-embedding-3-small"
 # Version4
-#EMBEDDING_MODEL = "mxbai-embed-large"
+#EMBEDDING_MODEL = "intfloat/multilingual-e5-large"
 
 
 
 
-LLM_MODEL = "mistral"
+LLM_MODEL = "mistralai/mistral-small-24b-instruct-2501"
 
 CHUNK_SIZE = 400
 CHUNK_OVERLAP = 80
@@ -214,13 +223,12 @@ def create_embedding(text):
     Convert text into a numerical vector using Ollama.
     """
 
-    response = ollama.embed(
+    response = client.embeddings.create(
         model=EMBEDDING_MODEL,
         input=text
     )
 
-    # Ollama returns a list of embeddings.
-    return response["embeddings"][0]
+    return response.data[0].embedding
 
 
 # ============================================================
@@ -407,12 +415,14 @@ def generate_answer(prompt):
     Send the augmented prompt to the local Mistral model.
     """
 
-    response = ollama.generate(
+    response = client.chat.completions.create(
         model=LLM_MODEL,
-        prompt=prompt
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
     )
 
-    return response["response"]
+    return response.choices[0].message.content
 
 
 # ============================================================
